@@ -1,0 +1,103 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Twitter Configuration{% endblock %}
+
+{% block content %}
+<div class="py-6">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6 bg-blue-400 text-white">
+                <h3 class="text-lg leading-6 font-medium">
+                    <i class="fab fa-twitter mr-2"></i> Twitter API Configuration
+                </h3>
+                <p class="mt-1 max-w-2xl text-sm text-blue-50">
+                    Enter your Twitter API credentials to connect your account
+                </p>
+            </div>
+
+            <!-- API Limitation Warning -->
+            <div class="p-4 border-l-4 border-yellow-400 bg-yellow-50 text-yellow-700">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800">Twitter API Limitations</h3>
+                        <div class="mt-2 text-sm text-yellow-700">
+                            <p>Twitter (now X) has significantly restricted their API access. Basic developer accounts have limited functionality.</p>
+                            <p class="mt-1">Some features may show sample data instead of real metrics due to these restrictions.</p>
+                            <p class="mt-1">For full access, you may need to apply for <a href="https://developer.twitter.com/en/portal/products/elevated" target="_blank" class="font-medium underline text-yellow-800 hover:text-yellow-900">Elevated access</a> or a paid tier.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if message %}
+            <div class="p-4 border-l-4 
+                {% if message_type == 'green' %} border-green-400 bg-green-50 text-green-700 
+                {% elif message_type == 'red' %} border-red-400 bg-red-50 text-red-700 
+                {% elif message_type == 'yellow' %} border-yellow-400 bg-yellow-50 text-yellow-700 
+                {% else %} border-blue-400 bg-blue-50 text-blue-700 {% endif %}">
+                <p>{{ message }}</p>
+            </div>
+            {% endif %}
+
+            <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    <div>
+                        <label for="api_key" class="block text-sm font-medium text-gray-700">API Key</label>
+                        <div class="mt-1">
+                            <input type="text" name="api_key" id="api_key" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Your Twitter API Key">
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">You can find this in your Twitter Developer dashboard</p>
+                    </div>
+
+                    <div>
+                        <label for="api_secret" class="block text-sm font-medium text-gray-700">API Secret</label>
+                        <div class="mt-1">
+                            <input type="password" name="api_secret" id="api_secret" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Your Twitter API Secret">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="access_token" class="block text-sm font-medium text-gray-700">Access Token</label>
+                        <div class="mt-1">
+                            <input type="text" name="access_token" id="access_token" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Your Twitter Access Token">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="access_secret" class="block text-sm font-medium text-gray-700">Access Token Secret</label>
+                        <div class="mt-1">
+                            <input type="password" name="access_secret" id="access_secret" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Your Twitter Access Token Secret">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-400 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Save Configuration
+                        </button>
+                        <a href="{% url 'platform_select' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Back to Platform Select
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-gray-50 px-4 py-4 sm:px-6 border-t border-gray-200">
+                <div class="text-sm">
+                    <h4 class="font-medium text-gray-500">How to get Twitter API credentials:</h4>
+                    <ol class="list-decimal list-inside mt-2 text-gray-500">
+                        <li>Go to <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank" class="text-blue-400 hover:text-blue-500">Twitter Developer Portal</a></li>
+                        <li>Create a project and app if you don't have one</li>
+                        <li>Navigate to "Keys and Tokens" tab</li>
+                        <li>Generate "Consumer Keys" and "Access Token & Secret"</li>
+                        <li>Copy the credentials and paste them here</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

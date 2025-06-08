@@ -1,0 +1,327 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Facebook Analytics{% endblock %}
+
+{% block content %}
+{# Show error message if something goes wrong #}
+{% if error %}
+<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+    <strong class="font-bold">Error!</strong>
+    <span class="block sm:inline">{{ error }}</span>
+</div>
+{% endif %}
+
+{# Main dashboard header section #}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Facebook Analytics Dashboard
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+            Real-time insights and analytics for your Facebook account
+        </p>
+    </div>
+</div>
+
+{# Quick stats cards showing key metrics #}
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    {# First card: Number of posts #}
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <dt class="text-sm font-medium text-gray-500 truncate">
+                Total Posts
+            </dt>
+            <dd class="mt-1 text-3xl font-semibold text-gray-900">
+                {{ analytics_data.total_posts }}
+            </dd>
+        </div>
+    </div>
+
+    <!-- Total Reactions Card -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <dt class="text-sm font-medium text-gray-500 truncate">
+                Total Reactions
+            </dt>
+            <dd class="mt-1 text-3xl font-semibold text-gray-900">
+                {{ analytics_data.total_reactions }}
+            </dd>
+        </div>
+    </div>
+
+    <!-- Total Comments Card -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <dt class="text-sm font-medium text-gray-500 truncate">
+                Total Comments
+            </dt>
+            <dd class="mt-1 text-3xl font-semibold text-gray-900">
+                {{ analytics_data.total_comments }}
+            </dd>
+        </div>
+    </div>
+
+    <!-- Engagement Rate Card -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <dt class="text-sm font-medium text-gray-500 truncate">
+                Avg. Reactions Per Post
+            </dt>
+            <dd class="mt-1 text-3xl font-semibold text-gray-900">
+                {{ analytics_data.avg_reactions_per_post }}
+            </dd>
+        </div>
+    </div>
+</div>
+
+{# Visual data analysis with charts #}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    {# Graph showing how many posts you made each month #}
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                Posts by Month
+            </h3>
+        </div>
+        <div class="px-4 py-5 sm:p-6">
+            <canvas id="postsChart" height="300"></canvas>
+        </div>
+    </div>
+
+    <!-- Engagement by Month Chart -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                Engagement by Month
+            </h3>
+        </div>
+        <div class="px-4 py-5 sm:p-6">
+            <canvas id="engagementChart" height="300"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- More Charts Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <!-- Post Types Chart -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                Post Types Distribution
+            </h3>
+        </div>
+        <div class="px-4 py-5 sm:p-6">
+            <canvas id="postTypesChart" height="300"></canvas>
+        </div>
+    </div>
+
+    <!-- Engagement Distribution Chart -->
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                Engagement Distribution
+            </h3>
+        </div>
+        <div class="px-4 py-5 sm:p-6">
+            <canvas id="engagementDistributionChart" height="300"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Top Posts Section -->
+<div class="bg-white overflow-hidden shadow rounded-lg mb-6">
+    <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Top Performing Posts
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+            Posts with the highest engagement (reactions + comments)
+        </p>
+    </div>
+    <div class="px-4 py-5 sm:p-6">
+        {% if analytics_data.top_posts %}
+            <div class="space-y-6">
+                {% for post in analytics_data.top_posts %}
+                <div class="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
+                    <!-- Post Header -->
+                    <div class="flex items-center mb-3">
+                        {% if user_data.picture %}
+                        <img src="{{ user_data.picture.data.url }}" alt="Profile Picture" class="h-10 w-10 rounded-full mr-3">
+                        {% else %}
+                        <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
+                            <i class="fas fa-user text-gray-500"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <p class="font-medium text-gray-900">{{ user_data.name }}</p>
+                            <p class="text-xs text-gray-500">
+                                {% if post.created_time %}
+                                {{ post.created_time|slice:":10" }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Post Content -->
+                    <div class="mb-4">
+                        {% if post.message %}
+                        <p class="text-gray-800">{{ post.message }}</p>
+                        {% else %}
+                        <p class="text-gray-500 italic">(No message content)</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Post Stats -->
+                    <div class="flex items-center text-sm text-gray-500 mb-3">
+                        {% if post.reactions.summary.total_count %}
+                        <div class="mr-6">
+                            <i class="fas fa-thumbs-up text-blue-500 mr-1"></i>
+                            {{ post.reactions.summary.total_count }} reaction{{ post.reactions.summary.total_count|pluralize }}
+                        </div>
+                        {% endif %}
+                        
+                        {% if post.comments.summary.total_count %}
+                        <div>
+                            <i class="fas fa-comment text-gray-400 mr-1"></i>
+                            {{ post.comments.summary.total_count }} comment{{ post.comments.summary.total_count|pluralize }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-chart-line text-gray-300 text-5xl mb-4"></i>
+                <p class="text-gray-500">No posts data available for analysis.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {        
+        // Basic settings to make charts look good on all screens
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false
+        };
+        
+        // Special settings for charts that show multiple data sets on top of each other
+        const stackedChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true,
+                },
+                y: {
+                    stacked: true
+                }
+            }
+        };
+        
+        // Posts by Month Chart
+        const postsCtx = document.getElementById('postsChart').getContext('2d');
+        const postsData = {
+            labels: {{ analytics_data.chart_labels|safe }},
+            datasets: [{
+                label: 'Number of Posts',
+                data: {{ analytics_data.chart_posts_data|safe }},
+                backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                borderColor: 'rgb(59, 130, 246)',
+                borderWidth: 1
+            }]
+        };
+        new Chart(postsCtx, {
+            type: 'bar',
+            data: postsData,
+            options: chartOptions
+        });
+        
+        // Engagement by Month Chart
+        const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+        const engagementData = {
+            labels: {{ analytics_data.chart_labels|safe }},
+            datasets: [
+                {
+                    label: 'Reactions',
+                    data: {{ analytics_data.chart_reactions_data|safe }},
+                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                    borderColor: 'rgb(59, 130, 246)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Comments',
+                    data: {{ analytics_data.chart_comments_data|safe }},
+                    backgroundColor: 'rgba(16, 185, 129, 0.5)',
+                    borderColor: 'rgb(16, 185, 129)',
+                    borderWidth: 1
+                }
+            ]
+        };
+        new Chart(engagementCtx, {
+            type: 'bar',
+            data: engagementData,
+            options: stackedChartOptions
+        });
+        
+        // Post Types Chart
+        const postTypesCtx = document.getElementById('postTypesChart').getContext('2d');
+        const postTypesData = {
+            labels: {{ analytics_data.chart_post_types_labels|safe }},
+            datasets: [{
+                data: {{ analytics_data.chart_post_types_data|safe }},
+                backgroundColor: [
+                    'rgba(59, 130, 246, 0.5)',
+                    'rgba(16, 185, 129, 0.5)',
+                    'rgba(245, 158, 11, 0.5)',
+                    'rgba(239, 68, 68, 0.5)',
+                    'rgba(107, 114, 128, 0.5)'
+                ],
+                borderColor: [
+                    'rgb(59, 130, 246)',
+                    'rgb(16, 185, 129)',
+                    'rgb(245, 158, 11)',
+                    'rgb(239, 68, 68)',
+                    'rgb(107, 114, 128)'
+                ],
+                borderWidth: 1
+            }]
+        };
+        new Chart(postTypesCtx, {
+            type: 'pie',
+            data: postTypesData,
+            options: chartOptions
+        });
+        
+        // Engagement Distribution Chart
+        const engagementDistCtx = document.getElementById('engagementDistributionChart').getContext('2d');
+        const engagementDistData = {
+            labels: ['Reactions', 'Comments'],
+            datasets: [{
+                data: [
+                    {{ analytics_data.total_reactions }},
+                    {{ analytics_data.total_comments }}
+                ],
+                backgroundColor: [
+                    'rgba(59, 130, 246, 0.5)',
+                    'rgba(16, 185, 129, 0.5)'
+                ],
+                borderColor: [
+                    'rgb(59, 130, 246)',
+                    'rgb(16, 185, 129)'
+                ],
+                borderWidth: 1
+            }]
+        };
+        new Chart(engagementDistCtx, {
+            type: 'doughnut',
+            data: engagementDistData,
+            options: chartOptions
+        });
+    });
+</script>
+{% endblock %} 

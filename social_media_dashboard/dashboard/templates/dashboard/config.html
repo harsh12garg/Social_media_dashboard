@@ -1,0 +1,93 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Facebook API Configuration{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Facebook API Configuration
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+            Enter your Facebook API credentials below to connect to the Facebook Graph API.
+        </p>
+    </div>
+    
+    {% if message %}
+    <div class="bg-{{ message_type }}-100 border border-{{ message_type }}-400 text-{{ message_type }}-700 px-4 py-3 rounded relative mb-4 mx-6" role="alert">
+        <span class="block sm:inline">{{ message }}</span>
+    </div>
+    {% endif %}
+    
+    <div class="border-t border-gray-200">
+        <form method="post" class="p-6">
+            {% csrf_token %}
+            <div class="space-y-6">
+                <div>
+                    <label for="app_id" class="block text-sm font-medium text-gray-700">App ID</label>
+                    <div class="mt-1">
+                        <input type="text" name="app_id" id="app_id" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Your Facebook App ID" required>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">You can find this in your Facebook Developer Dashboard.</p>
+                </div>
+                
+                <div>
+                    <label for="app_secret" class="block text-sm font-medium text-gray-700">App Secret</label>
+                    <div class="mt-1">
+                        <input type="password" name="app_secret" id="app_secret" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Your Facebook App Secret" required>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">Keep this secret and never share it publicly.</p>
+                </div>
+                
+                <div>
+                    <label for="access_token" class="block text-sm font-medium text-gray-700">Access Token</label>
+                    <div class="mt-1">
+                        <input type="text" name="access_token" id="access_token" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Your Facebook Access Token" required>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">Generate a long-lived access token from the Facebook Developer Portal.</p>
+                </div>
+                
+                <div class="flex justify-end">
+                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Save Configuration
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <div class="px-4 py-5 sm:px-6 border-t border-gray-200">
+        <h4 class="text-md font-medium text-gray-900 mb-4">How to get your Facebook API credentials:</h4>
+        <ol class="list-decimal pl-5 space-y-3 text-sm text-gray-600">
+            <li>Go to <a href="https://developers.facebook.com/" class="text-blue-600 hover:underline" target="_blank">Facebook for Developers</a> and log in with your Facebook account.</li>
+            <li>Create a new app or select an existing one.</li>
+            <li>From your app dashboard, you can find your App ID and App Secret.</li>
+            <li>To generate an access token, go to the Graph API Explorer tool.</li>
+            <li>Select your app from the dropdown and request the necessary permissions:
+                <ul class="list-disc pl-5 mt-2">
+                    <li><strong>email</strong> - For email access</li>
+                    <li><strong>public_profile</strong> - For basic profile information</li>
+                    <li><strong>user_posts</strong> - To access your posts</li>
+                    <li><strong>user_photos</strong> - To access photos in posts</li>
+                    <li><strong>user_likes</strong> - To access reactions on posts</li>
+                </ul>
+            </li>
+            <li>Click "Generate Access Token" and follow the prompts.</li>
+            <li>For a long-lived token, use the Access Token Debugger tool to extend its validity.</li>
+        </ol>
+        
+        <div class="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                        <strong>Important:</strong> To display posts, reactions, and comments, make sure your access token has the <strong>user_posts</strong> and <strong>user_likes</strong> permissions. Without these permissions, the dashboard will only show your basic profile information.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,369 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Twitter Analytics{% endblock %}
+
+{% block content %}
+<div class="py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {% if error %}
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+            <p class="font-bold">API Access Restricted</p>
+            <p>{{ error }}</p>
+            <p class="mt-2 text-sm">Twitter has restricted API access. You need elevated or paid API access to use this feature.</p>
+            <p class="mt-2 text-sm">Please apply for elevated access through the <a href="https://developer.twitter.com/en/portal/products/elevated" class="underline font-medium" target="_blank">Twitter Developer Portal</a>.</p>
+        </div>
+        {% endif %}
+
+        {% if user_data %}
+        {% if not error %}
+        <!-- Analytics Overview -->
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Analytics Overview</h2>
+            
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-blue-50 rounded-lg p-4 text-center">
+                            <span class="text-3xl font-bold text-blue-600">{{ analytics_data.total_tweets }}</span>
+                            <p class="text-blue-600">Total Tweets</p>
+                        </div>
+                        <div class="bg-red-50 rounded-lg p-4 text-center">
+                            <span class="text-3xl font-bold text-red-600">{{ analytics_data.total_likes }}</span>
+                            <p class="text-red-600">Total Likes</p>
+                        </div>
+                        <div class="bg-green-50 rounded-lg p-4 text-center">
+                            <span class="text-3xl font-bold text-green-600">{{ analytics_data.total_retweets }}</span>
+                            <p class="text-green-600">Total Retweets</p>
+                        </div>
+                        <div class="bg-purple-50 rounded-lg p-4 text-center">
+                            <span class="text-3xl font-bold text-purple-600">{{ user_data.followers_count }}</span>
+                            <p class="text-purple-600">Followers</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Average Engagement</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="text-center">
+                                    <span class="text-2xl font-bold text-red-500">{{ analytics_data.avg_likes_per_tweet }}</span>
+                                    <p class="text-gray-600">Likes per Tweet</p>
+                                </div>
+                                <div class="text-center">
+                                    <span class="text-2xl font-bold text-green-500">{{ analytics_data.avg_retweets_per_tweet }}</span>
+                                    <p class="text-gray-600">Retweets per Tweet</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Content Breakdown</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+                                <div class="text-center">
+                                    <span class="text-lg font-bold text-gray-800">{{ analytics_data.tweet_types.text }}</span>
+                                    <p class="text-xs text-gray-600">Text</p>
+                                </div>
+                                <div class="text-center">
+                                    <span class="text-lg font-bold text-gray-800">{{ analytics_data.tweet_types.photo }}</span>
+                                    <p class="text-xs text-gray-600">Photos</p>
+                                </div>
+                                <div class="text-center">
+                                    <span class="text-lg font-bold text-gray-800">{{ analytics_data.tweet_types.video }}</span>
+                                    <p class="text-xs text-gray-600">Videos</p>
+                                </div>
+                                <div class="text-center">
+                                    <span class="text-lg font-bold text-gray-800">{{ analytics_data.tweet_types.link }}</span>
+                                    <p class="text-xs text-gray-600">Links</p>
+                                </div>
+                                <div class="text-center">
+                                    <span class="text-lg font-bold text-gray-800">{{ analytics_data.tweet_types.other }}</span>
+                                    <p class="text-xs text-gray-600">Other</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if analytics_data.total_tweets > 0 %}
+        <!-- Tweet Activity Chart -->
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Tweet Activity</h2>
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <canvas id="tweetActivityChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Engagement Chart -->
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Engagement Overview</h2>
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <canvas id="engagementChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Type Breakdown -->
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Content Type Breakdown</h2>
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <canvas id="contentTypeChart" width="400" height="400"></canvas>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-medium text-gray-900">Content Strategy Insights</h3>
+                                <p class="text-gray-600">Based on your content breakdown and engagement rates, here are some insights:</p>
+                                <ul class="list-disc list-inside text-gray-600 space-y-2">
+                                    <li>Try posting more visual content to increase engagement</li>
+                                    <li>Experiment with different content types to see what resonates with your audience</li>
+                                    <li>Maintain a consistent posting schedule</li>
+                                    <li>Engage with your followers to build community</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Twitter API Access Info -->
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">About Twitter API Access</h2>
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <p class="text-gray-700 mb-4">Twitter has implemented strict API access tiers:</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h3 class="font-medium text-gray-900 mb-2">Basic Access (Free)</h3>
+                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                <li>Very limited endpoints</li>
+                                <li>Restricted tweet retrieval</li>
+                                <li>Limited analytics capabilities</li>
+                                <li>100 tweets per month limit</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h3 class="font-medium text-gray-900 mb-2">Elevated Access</h3>
+                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                <li>More endpoints available</li>
+                                <li>Higher rate limits</li>
+                                <li>Better analytics access</li>
+                                <li>Requires application approval</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h3 class="font-medium text-gray-900 mb-2">Paid Tiers</h3>
+                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                <li>Full API access</li>
+                                <li>Highest rate limits</li>
+                                <li>Complete analytics features</li>
+                                <li>Starting at $100/month</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 text-center">
+                        <a href="https://developer.twitter.com/en/portal/products" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-400 hover:bg-blue-500">
+                            <i class="fas fa-external-link-alt mr-2"></i> Learn More About Twitter API Access
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Performing Tweets -->
+        {% if analytics_data.top_tweets %}
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Top Performing Tweets</h2>
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="grid grid-cols-1 gap-4">
+                        {% for tweet in analytics_data.top_tweets %}
+                            <div class="border-l-4 border-blue-400 pl-4 py-2">
+                                <p class="text-gray-900">{{ tweet.full_text|truncatechars:140 }}</p>
+                                <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+                                    <span><i class="far fa-heart text-red-400 mr-1"></i> {{ tweet.favorite_count }} likes</span>
+                                    <span><i class="fas fa-retweet text-green-500 mr-1"></i> {{ tweet.retweet_count }} retweets</span>
+                                    <span class="text-gray-400">{{ tweet.created_at|slice:":16" }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="flex space-x-4">
+            <a href="{% url 'twitter_dashboard' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-400 hover:bg-blue-500">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+            </a>
+            <a href="{% url 'twitter_config' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                <i class="fas fa-cog mr-2"></i> Configuration
+            </a>
+        </div>
+        {% else %}
+        <!-- API Access Restricted Message -->
+        <div class="bg-white p-6 rounded-lg shadow mb-6">
+            <div class="text-center">
+                <i class="fas fa-lock text-red-500 text-5xl mb-4"></i>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">API Access Restricted</h3>
+                <p class="text-gray-600 mb-4">Twitter API access is restricted for your account. Analytics features are unavailable.</p>
+                <p class="text-gray-600 mb-6">To access analytics, you need to apply for elevated access through the Twitter Developer Portal.</p>
+                <a href="https://developer.twitter.com/en/portal/products/elevated" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-400 hover:bg-blue-500">
+                    <i class="fas fa-external-link-alt mr-2"></i> Apply for Elevated Access
+                </a>
+            </div>
+        </div>
+        
+        <div class="flex justify-center">
+            <a href="{% url 'twitter_dashboard' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-400 hover:bg-blue-500">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+            </a>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-12">
+            <i class="fab fa-twitter text-blue-400 text-6xl mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Twitter Analytics</h3>
+            <p class="text-gray-500 mb-6">Please configure your Twitter API credentials to view analytics.</p>
+            <a href="{% url 'twitter_config' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-400 hover:bg-blue-500">
+                <i class="fas fa-cog mr-2"></i> Configure Twitter API
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if user_data and not error and analytics_data.total_tweets > 0 %}
+<script>
+    // Tweet Activity Chart
+    var activityCtx = document.getElementById('tweetActivityChart').getContext('2d');
+    var activityChart = new Chart(activityCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ analytics_data.chart_labels|safe }},
+            datasets: [{
+                label: 'Tweets',
+                data: {{ analytics_data.chart_tweets_data|safe }},
+                backgroundColor: 'rgba(29, 161, 242, 0.6)',
+                borderColor: 'rgba(29, 161, 242, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Tweets'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Month'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Engagement Chart
+    var engagementCtx = document.getElementById('engagementChart').getContext('2d');
+    var engagementChart = new Chart(engagementCtx, {
+        type: 'line',
+        data: {
+            labels: {{ analytics_data.chart_labels|safe }},
+            datasets: [{
+                label: 'Likes',
+                data: {{ analytics_data.chart_likes_data|safe }},
+                backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                borderColor: 'rgba(231, 76, 60, 1)',
+                borderWidth: 2,
+                tension: 0.1
+            }, {
+                label: 'Retweets',
+                data: {{ analytics_data.chart_retweets_data|safe }},
+                backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                borderColor: 'rgba(46, 204, 113, 1)',
+                borderWidth: 2,
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Count'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Month'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Content Type Chart
+    var contentTypeCtx = document.getElementById('contentTypeChart').getContext('2d');
+    var contentTypeChart = new Chart(contentTypeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ analytics_data.chart_post_types_labels|safe }},
+            datasets: [{
+                data: {{ analytics_data.chart_tweet_types_data|safe }},
+                backgroundColor: [
+                    'rgba(52, 152, 219, 0.6)',
+                    'rgba(155, 89, 182, 0.6)',
+                    'rgba(52, 73, 94, 0.6)',
+                    'rgba(230, 126, 34, 0.6)',
+                    'rgba(149, 165, 166, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(52, 152, 219, 1)',
+                    'rgba(155, 89, 182, 1)',
+                    'rgba(52, 73, 94, 1)',
+                    'rgba(230, 126, 34, 1)',
+                    'rgba(149, 165, 166, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                },
+                title: {
+                    display: true,
+                    text: 'Tweet Types Distribution'
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %} 
